@@ -36,5 +36,5 @@ cue up different lighting scenes. baby steps...
 #### things I'd like to add:
 - it would be cool if the script could tell you what the colors are in plain english. the xy color space that hue uses
   isn't the most intuitive, so knowing that `"xy": {"x": 0.2988, "y": 0.1419}` is `pink` would make the configuration
-  script a little cleaner
+  script a little more descriptive. See [this gist](https://gist.github.com/popcorn245/30afa0f98eea1c2fd34d) for some context
 - I want to figure out how to build an executable from this. Not a huge deal rn, but this seems simple enough.
