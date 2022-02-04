@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "smart_light_finder"
+version = "0.1.0"
+description = ""
+authors = ["Daniel Kulla <dkulla129@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+pyinquirer = "*"
+requests = "*"
+pywemo = "*"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+list_hue_devices = "smart_light_finder.list_hue_devices:main"

@@ -1,6 +1,8 @@
 import json
+import os.path
 from os import environ
 from pprint import pprint
+import pywemo
 
 import requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
@@ -66,6 +68,12 @@ def build_room_object(room_response_entry):
     'lights': lights
   }
 
+def get_wemo_outlets():
+  path_to_wemo_rooms = environ.get('WEMO_ROOMS_JSON', default=os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                                                           'wemo_rooms.toml'))
+  devices = pywemo.discover_devices()
+  print(devices)
 
 if __name__ == '__main__':
-    main()
+    # main()
+    get_wemo_outlets()

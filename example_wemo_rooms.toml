@@ -1,0 +1,18 @@
+# the rooms here must correspond _exactly_ with the rooms that the philips hue bridge knows about
+# the outlet names must exactly match the outlet names configured for the wemo outlets
+# model your own wemo_rooms.toml after the example schema below
+
+
+[office]
+outlets = [
+  "camera halo light",
+  "Mood Lighting",
+  "And More"
+]
+
+["Living Room"]
+outlets = [
+  "massage chair",
+  "popcorn maker",
+  "searchlights"
+]
