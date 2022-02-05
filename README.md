@@ -4,10 +4,10 @@ This is a little script to find the hue lights in a given room,
 identify their colors, and spit out some configuration JSON
 to let us load into [caseta_listener](https://github.com/dkulla01/caseta_listener).
 
-You'll need python 3.9 and pipenv. Install the projects deps with
+You'll need python 3.9 and [poetry](https://python-poetry.org/docs/#installation). Install the projects deps with
 
 ```commandline
-pipenv install
+poetry install
 ```
 
 You'll need to [generate a hue api key](https://developers.meethue.com/develop/hue-api-v2/getting-started/)
