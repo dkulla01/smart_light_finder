@@ -6,9 +6,9 @@ authors = ["Daniel Kulla <dkulla129@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-pyinquirer = "*"
 requests = "*"
-pywemo = "*"
+inquirerpy = "^0.3.3"
+pywemo = "^0.7.0"
 
 [tool.poetry.dev-dependencies]
 
@@ -18,3 +18,4 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
 list_hue_devices = "smart_light_finder.list_hue_devices:main"
+build_wemo_room_configuration = "smart_light_finder.build_wemo_room_configuration:main"
