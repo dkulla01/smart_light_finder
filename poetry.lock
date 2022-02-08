@@ -86,7 +86,7 @@ wcwidth = "*"
 
 [[package]]
 name = "pywemo"
-version = "0.7.0"
+version = "0.8.0"
 description = "Lightweight Python module to discover and control WeMo devices"
 category = "main"
 optional = false
@@ -117,6 +117,14 @@ socks = ["PySocks (>=1.5.6,!=1.5.7)", "win-inet-pton"]
 use_chardet_on_py3 = ["chardet (>=3.0.2,<5)"]
 
 [[package]]
+name = "toml"
+version = "0.10.2"
+description = "Python Library for Tom's Obvious, Minimal Language"
+category = "main"
+optional = false
+python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*"
+
+[[package]]
 name = "urllib3"
 version = "1.26.8"
 description = "HTTP library with thread-safe connection pooling, file post, and more."
@@ -140,7 +148,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "5b185c61ca65e6acec10547c06bf3745c5aff086267709050b3d5bd48d45ba38"
+content-hash = "2478fba7775060c97f61b16cccf2cf15be8dc004f5e751bd5400a0f33d6d97ce"
 
 [metadata.files]
 certifi = [
@@ -234,12 +242,16 @@ prompt-toolkit = [
     {file = "prompt_toolkit-3.0.27.tar.gz", hash = "sha256:f2b6a8067a4fb959d3677d1ed764cc4e63e0f6f565b9a4fc7edc2b18bf80217b"},
 ]
 pywemo = [
-    {file = "pywemo-0.7.0-py3-none-any.whl", hash = "sha256:45269f0080f3d95f34dd6a8cbcb83c1c2aad912b4d748c764bbdbec9241c50aa"},
-    {file = "pywemo-0.7.0.tar.gz", hash = "sha256:f571cfdc0100cb441338da415135c59077b3978b85df1c749e870bf9a7ea65bc"},
+    {file = "pywemo-0.8.0-py3-none-any.whl", hash = "sha256:663ee90ef820a5db2e2ced760aafedb00163f80cf9dc28ff990c117a496ac1be"},
+    {file = "pywemo-0.8.0.tar.gz", hash = "sha256:469bc307b6874c2a5db040a4d2d36c0d921495109a5bcd8f5ca50e5bad00b834"},
 ]
 requests = [
     {file = "requests-2.27.1-py2.py3-none-any.whl", hash = "sha256:f22fa1e554c9ddfd16e6e41ac79759e17be9e492b3587efa038054674760e72d"},
     {file = "requests-2.27.1.tar.gz", hash = "sha256:68d7c56fd5a8999887728ef304a6d12edc7be74f1cfa47714fc8b414525c9a61"},
+]
+toml = [
+    {file = "toml-0.10.2-py2.py3-none-any.whl", hash = "sha256:806143ae5bfb6a3c6e736a764057db0e6a0e05e338b5630894a5f779cabb4f9b"},
+    {file = "toml-0.10.2.tar.gz", hash = "sha256:b3bda1d108d5dd99f4a20d24d9c348e91c4db7ab1b749200bded2f839ccbe68f"},
 ]
 urllib3 = [
     {file = "urllib3-1.26.8-py2.py3-none-any.whl", hash = "sha256:000ca7f471a233c2251c6c7023ee85305721bfdf18621ebff4fd17a8653427ed"},

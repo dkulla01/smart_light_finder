@@ -8,7 +8,8 @@ authors = ["Daniel Kulla <dkulla129@gmail.com>"]
 python = "^3.9"
 requests = "*"
 inquirerpy = "^0.3.3"
-pywemo = "^0.7.0"
+pywemo = "^0.8.0"
+toml = "^0.10.2"
 
 [tool.poetry.dev-dependencies]
 
