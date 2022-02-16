@@ -1,4 +1,6 @@
+import sys
 from collections import defaultdict
+from termcolor import colored
 
 import toml
 
@@ -9,23 +11,44 @@ from InquirerPy import inquirer
 import pywemo
 
 OUTLET_DEVICE_TYPES = {'Switch', 'OutdoorPlug'}
+OMIT_FROM_CONFIGURATION = 'Omit from configuration'
 
 def main():
+  print(colored("looking up hue room configuration...", 'green'), file=sys.stderr)
   hue_rooms = get_rooms(get_hue_host(), get_hue_api_key())
   room_names = [room['name'] for room in hue_rooms]
+  while True:
+    newline_separated_room_names = '\n'.join([f"  {room}" for room in room_names])
+    additional_rooms_prompt = f"""\
+Here are the rooms we know about so far:
+{newline_separated_room_names}
+Are there any more rooms we should know about? Enter the new room name, or press enter to continue on to configuring."""
+    new_room_name = inquirer.text(
+      message=additional_rooms_prompt
+    ).execute()
 
+    if not new_room_name:
+      break
+    elif new_room_name in room_names:
+      print(colored(f"we already have a `{new_room_name}`", 'red'), file=sys.stderr)
+    else:
+      room_names.append(new_room_name)
+
+  room_names.append(OMIT_FROM_CONFIGURATION)
+  print(colored("looking for wemo devices...", 'green'), file=sys.stderr)
   wemo_devices = pywemo.discover_devices()
   wemo_outlets = [device.name for device in wemo_devices if device.device_type in OUTLET_DEVICE_TYPES]
   outlets_by_room = defaultdict(list)
   for outlet in wemo_outlets:
     room = inquirer.select(
-      message=f"what room is the ** {outlet} ** outlet in?",
+      message=f"What room is the ** {outlet} ** outlet in?",
       choices=room_names
     ).execute()
-
+    if room == OMIT_FROM_CONFIGURATION:
+      continue
     outlets_by_room[room].append(outlet)
 
-  print("here is the output...")
+  print("here is the output...", file=sys.stderr)
   print(toml.dumps(outlets_by_room))
 
 
