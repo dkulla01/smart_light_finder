@@ -1,4 +1,3 @@
-import json
 import os.path
 from os import environ
 from pprint import pprint
