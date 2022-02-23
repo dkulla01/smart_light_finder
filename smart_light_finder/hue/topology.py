@@ -15,7 +15,7 @@ def get_lights(host, api_key):
 def build_light_object(light_response_entry):
   light_object = {
     'id': light_response_entry['id'],
-    'on': light_response_entry['on'] == 'true',
+    'on': light_response_entry['on']['on'],
     'color_capable': 'color' in light_response_entry.keys(),
     'name': light_response_entry['metadata']['name']
   }

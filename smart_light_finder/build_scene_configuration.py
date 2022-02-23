@@ -1,11 +1,13 @@
 import os
 import sys
 from pathlib import Path
+from collections import defaultdict
 
 import pywemo
 import toml
 import yaml
 from InquirerPy import inquirer
+from InquirerPy.base import Choice
 from termcolor import colored
 
 from smart_light_finder.hue.config import get_hue_host, get_hue_api_key
@@ -60,12 +62,17 @@ def main():
       if not confirmation:
         exit(0)
 
-    hue_lights_to_configure = [light for id, light in hue_devices_by_id.items() if id in hue_rooms_by_name[room_to_configure]['lights']]
+    hue_lights_to_configure = [light for light_id, light in hue_devices_by_id.items() if light_id in hue_rooms_by_name[room_to_configure]['lights']]
 
     hue_device_configuration = build_hue_scene_configuration(hue_lights_to_configure)
+    wemo_devices_to_configure = wemo_room_configuration.get(room_to_configure, [])
+    wemo_device_configuration = []
+    if wemo_devices_to_configure:
+      wemo_device_configuration = build_wemo_scene_configuration(wemo_devices_to_configure)
+
     scene_configuration = {
       "name": scene_name,
-      "devices": hue_device_configuration
+      "devices": hue_device_configuration + wemo_device_configuration
     }
 
     if index_of_existing_scene is not None:
@@ -75,18 +82,21 @@ def main():
 
     output_file.seek(0)
     output_file.truncate()
+    print(colored(f"writing configuration to {room_configuration_file_name}", 'green'))
     yaml.safe_dump(room_configuration, output_file)
 
 def build_hue_scene_configuration(hue_lights_to_configure):
-  lights = [light['name'] for light in hue_lights_to_configure]
+  lights = [
+    Choice(light['name'], enabled=light['on'])
+    for light in hue_lights_to_configure]
   selected_hue_lights = []
   if not lights:
     print(colored("there are no hue lights in this room", 'red'))
     return []
   else:
     selected_hue_lights = inquirer.checkbox(
-      message='which hue devices do we care about? (spacebar to check/uncheck, enter to submit)',
-      choices=lights
+      message='Which hue devices do we want to be on? (spacebar to check/uncheck, enter to submit)',
+      choices=lights,
     ).execute()
 
   hue_device_configuration = []
@@ -103,20 +113,46 @@ def build_hue_scene_configuration(hue_lights_to_configure):
     hue_device_configuration.append(light_configuration)
   return hue_device_configuration
 
+def build_wemo_scene_configuration(wemo_devices):
+  choices = [
+    Choice(device.name, enabled=device.get_state() > 0)
+    for device in wemo_devices
+  ]
+
+  selected_devices = inquirer.checkbox(
+    message='Which wemo devices do we want to be on? (spacebar to check/uncheck, enter to submit)',
+    choices=choices
+  ).execute()
+
+  return [
+    {
+      'name': device.name,
+      'type': 'wemo_outlet',
+      'on': device.name in selected_devices
+    }
+    for device in wemo_devices
+  ]
+
 def get_wemo_room_configuration():
   wemo_room_config_file = os.environ.get('WEMO_ROOM_FILE', 'wemo_rooms.toml')
-  print(colored(f"looking for wemo rooms in {wemo_room_config_file}...", 'green'), file=sys.stderr, end='')
+  print(colored(f"looking for wemo rooms and devices from {wemo_room_config_file}...", 'green'), file=sys.stderr, end='')
 
   if not os.path.exists(wemo_room_config_file):
     print(colored("it doesn't look like there are any wemo config files", 'red'), file=sys.stderr)
     return {}
-  print(colored('found wemo rooms', 'green'), file=sys.stderr)
-  return toml.load(wemo_room_config_file)
+  wemo_room_configuration = toml.load(wemo_room_config_file)
+  wemo_devices_by_room_name = get_wemo_devices_by_room_name(wemo_room_configuration)
+  print(colored('found wemo rooms and devices', 'green'), file=sys.stderr)
+  return wemo_devices_by_room_name
 
-def get_wemo_devices(device_names):
-  print(colored(f"looking for the following devices: {device_names} ..."))
+def get_wemo_devices_by_room_name(wemo_room_configuration):
   all_devices = pywemo.discover_devices()
-  return [device for device in all_devices if device.name in device_names]
+  devices_by_room = {}
+  devices_by_name = {device.name: device for  device in all_devices}
+  for room, device_names in wemo_room_configuration.items():
+    devices = [devices_by_name[name] for name in device_names]
+    devices_by_room[room] = devices
+  return devices_by_room
 
 def get_nanoleaf_configuration(room_name):
   nanoleaf_device_names = os.environ.get('NANOLEAF_DEVICES').split(':')
