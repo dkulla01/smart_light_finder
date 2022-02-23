@@ -64,7 +64,10 @@ def main():
 
     hue_lights_to_configure = [light for light_id, light in hue_devices_by_id.items() if light_id in hue_rooms_by_name[room_to_configure]['lights']]
 
-    hue_device_configuration = build_hue_scene_configuration(hue_lights_to_configure)
+    hue_device_configuration = []
+    if hue_lights_to_configure:
+      hue_device_configuration = build_hue_scene_configuration(hue_lights_to_configure)
+
     wemo_devices_to_configure = wemo_room_configuration.get(room_to_configure, [])
     wemo_device_configuration = []
     if wemo_devices_to_configure:
@@ -88,11 +91,12 @@ def main():
 def build_hue_scene_configuration(hue_lights_to_configure):
   lights = [
     Choice(light['name'], enabled=light['on'])
-    for light in hue_lights_to_configure]
+    for light in hue_lights_to_configure
+    if light['on']
+  ]
   selected_hue_lights = []
   if not lights:
-    print(colored("there are no hue lights in this room", 'red'))
-    return []
+    print(colored("No hue lights are currently on in this room, so we'll mark them all as 'off'", 'yellow'))
   else:
     selected_hue_lights = inquirer.checkbox(
       message='Which hue devices do we want to be on? (spacebar to check/uncheck, enter to submit)',
