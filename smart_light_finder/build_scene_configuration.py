@@ -37,7 +37,7 @@ def main():
   scene_name = inquirer.text(
     message="what should we name this scene?"
   ).execute()
-  print(colored(f"Great, lets start configuring the {scene_name} scene in the {room_to_configure}!", 'green'))
+  print(colored(f"Great, lets start configuring the {scene_name} scene in the {room_to_configure}!", 'green'),  file=sys.stderr)
 
   # see if there's a room configuration file already?
   room_configuration_file_name = f"{room_to_configure.lower()}_scene_configuration.yaml"
@@ -73,14 +73,14 @@ def main():
     if hue_lights_to_configure:
       hue_device_configuration = build_hue_scene_configuration(hue_lights_to_configure)
     else:
-      print(colored(f"There are no hue devices in the {room_to_configure}.", TERMCOLOR_YELLOW))
+      print(colored(f"There are no hue devices in the {room_to_configure}.", TERMCOLOR_YELLOW),  file=sys.stderr)
 
     wemo_devices_to_configure = wemo_room_configuration.get(room_to_configure, [])
     wemo_device_configuration = []
     if wemo_devices_to_configure:
       wemo_device_configuration = build_wemo_scene_configuration(wemo_devices_to_configure)
     else:
-      print(colored(f"There are no wemo devices in the {room_to_configure}.", TERMCOLOR_YELLOW))
+      print(colored(f"There are no wemo devices in the {room_to_configure}.", TERMCOLOR_YELLOW),  file=sys.stderr)
 
     device_configuration = hue_device_configuration + wemo_device_configuration + get_nanoleaf_configuration(room_to_configure)
     if device_configuration:
@@ -96,15 +96,17 @@ def main():
 
       output_file.seek(0)
       output_file.truncate()
-      print(colored(f"writing configuration to {room_configuration_file_name}", 'green'))
+      print(colored(f"writing configuration to {room_configuration_file_name}", 'green'),  file=sys.stderr)
       yaml.safe_dump(room_configuration, output_file)
     else:
       print(
         colored(
           f"There are no devices in this {room_to_configure}-{scene_name} configuration, so not writing any output.",
           TERMCOLOR_YELLOW
-        )
+        ),
+        file=sys.stderr
       )
+
 
 def build_hue_scene_configuration(hue_lights_to_configure):
   lights = [
@@ -114,7 +116,10 @@ def build_hue_scene_configuration(hue_lights_to_configure):
   ]
   selected_hue_lights = []
   if not lights:
-    print(colored("No hue lights are currently on in this room, so we'll mark them all as 'off'", TERMCOLOR_YELLOW))
+    print(
+      colored("No hue lights are currently on in this room, so we'll mark them all as 'off'", TERMCOLOR_YELLOW),
+      file=sys.stderr
+    )
   else:
     selected_hue_lights = inquirer.checkbox(
       message='Which hue devices do we want to be on? (space bar to check/uncheck, enter to submit)',
@@ -134,6 +139,7 @@ def build_hue_scene_configuration(hue_lights_to_configure):
       light_configuration['color'] = light['color']
     hue_device_configuration.append(light_configuration)
   return hue_device_configuration
+
 
 def build_wemo_scene_configuration(wemo_devices):
   choices = [
@@ -155,6 +161,7 @@ def build_wemo_scene_configuration(wemo_devices):
     for device in wemo_devices
   ]
 
+
 def get_wemo_room_configuration():
   wemo_room_config_file = os.environ.get('WEMO_ROOM_FILE', 'wemo_rooms.toml')
   print(colored(f"Looking for wemo rooms and devices from {wemo_room_config_file}...", 'green'), file=sys.stderr, end='')
@@ -167,6 +174,7 @@ def get_wemo_room_configuration():
   print(colored('Found wemo rooms and devices', 'green'), file=sys.stderr)
   return wemo_devices_by_room_name
 
+
 def get_wemo_devices_by_room_name(wemo_room_configuration):
   all_devices = pywemo.discover_devices()
   devices_by_room = {}
@@ -176,15 +184,16 @@ def get_wemo_devices_by_room_name(wemo_room_configuration):
     devices_by_room[room] = devices
   return devices_by_room
 
+
 def get_nanoleaf_configuration(room_name):
   nanoleaf_device_names = get_nanoleaf_devices(room_name)
   if not nanoleaf_device_names:
-    print(colored(f"There are no nanoleaf devices in the {room_name}.", TERMCOLOR_YELLOW))
+    print(colored(f"There are no nanoleaf devices in the {room_name}.", TERMCOLOR_YELLOW),  file=sys.stderr)
     return []
   nanoleaf_devices = [get_device_status(device_name) for device_name in nanoleaf_device_names]
   currently_on_devices = filter(lambda device: device['on'], nanoleaf_devices)
   if not currently_on_devices:
-    print(colored(f"There are no currently on nanoleaf devices in the {room_name}.", TERMCOLOR_YELLOW))
+    print(colored(f"There are no currently on nanoleaf devices in the {room_name}.", TERMCOLOR_YELLOW),  file=sys.stderr)
     return []
 
   choices = [
@@ -201,6 +210,7 @@ def get_nanoleaf_configuration(room_name):
     device['on'] = device['name'] in selected_devices
 
   return nanoleaf_devices
+
 
 if __name__ == '__main__':
     main()
