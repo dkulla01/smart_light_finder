@@ -34,6 +34,3 @@ def get_device_status(device_name):
     status['effect'] = device_info['effects']['select']
 
   return status
-
-
-
