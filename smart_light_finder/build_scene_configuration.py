@@ -49,7 +49,7 @@ def main():
       'scenes': []
     }
 
-    # see if there's a configuration object that we want to overwrite
+    # see if there's a scene configuration object that we want to overwrite
     index_of_existing_scene = None
     for index, value in enumerate(room_configuration['scenes']):
       if value['name'] == scene_name:
