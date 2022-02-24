@@ -31,7 +31,7 @@ def main():
   room_names = set().union(hue_rooms_by_name.keys(), wemo_room_configuration.keys())
   room_to_configure = inquirer.select(
     message='Which room are we configuring?',
-    choices=list(room_names)
+    choices=sorted(list(room_names))
   ).execute()
 
   scene_name = inquirer.text(
@@ -63,7 +63,11 @@ def main():
       if not confirmation:
         exit(0)
 
-    hue_lights_to_configure = [light for light_id, light in hue_devices_by_id.items() if light_id in hue_rooms_by_name[room_to_configure]['lights']]
+    hue_lights_to_configure = sorted([
+      light
+      for light_id, light in hue_devices_by_id.items()
+      if light_id in hue_rooms_by_name[room_to_configure]['lights']
+    ])
 
     hue_device_configuration = []
     if hue_lights_to_configure:
@@ -113,7 +117,7 @@ def build_hue_scene_configuration(hue_lights_to_configure):
     print(colored("No hue lights are currently on in this room, so we'll mark them all as 'off'", TERMCOLOR_YELLOW))
   else:
     selected_hue_lights = inquirer.checkbox(
-      message='Which hue devices do we want to be on? (spacebar to check/uncheck, enter to submit)',
+      message='Which hue devices do we want to be on? (space bar to check/uncheck, enter to submit)',
       choices=lights,
     ).execute()
 
@@ -138,7 +142,7 @@ def build_wemo_scene_configuration(wemo_devices):
   ]
 
   selected_devices = inquirer.checkbox(
-    message='Which wemo devices do we want to be on? (spacebar to check/uncheck, enter to submit)',
+    message='Which wemo devices do we want to be on? (space bar to check/uncheck, enter to submit)',
     choices=choices
   ).execute()
 
@@ -189,7 +193,7 @@ def get_nanoleaf_configuration(room_name):
   ]
 
   selected_devices = inquirer.checkbox(
-    message='Which nanoleaf devices do we want to be on? (spacebar to check/uncheck, enter to submit)',
+    message='Which nanoleaf devices do we want to be on? (space bar to check/uncheck, enter to submit)',
     choices=choices
   ).execute()
 
@@ -197,8 +201,6 @@ def get_nanoleaf_configuration(room_name):
     device['on'] = device['name'] in selected_devices
 
   return nanoleaf_devices
-
-
 
 if __name__ == '__main__':
     main()
