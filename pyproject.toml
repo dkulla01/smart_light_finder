@@ -11,6 +11,8 @@ inquirerpy = "^0.3.3"
 pywemo = "^0.8.0"
 toml = "^0.10.2"
 termcolor = "^1.1.0"
+nanoleafapi = "^2.1.1"
+PyYAML = "^6.0"
 
 [tool.poetry.dev-dependencies]
 
@@ -21,3 +23,4 @@ build-backend = "poetry.core.masonry.api"
 [tool.poetry.scripts]
 list_hue_devices = "smart_light_finder.list_hue_devices:main"
 build_wemo_room_configuration = "smart_light_finder.build_wemo_room_configuration:main"
+build_scene_configuration = "smart_light_finder.build_scene_configuration:main"

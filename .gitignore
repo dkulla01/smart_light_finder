@@ -1,1 +1,2 @@
-example_wemo_rooms.toml
+wemo_rooms*.toml
+*_scene_configuration.yaml

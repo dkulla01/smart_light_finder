@@ -13,12 +13,21 @@ def get_lights(host, api_key):
   return [build_light_object(entry) for entry in body['data']]
 
 def build_light_object(light_response_entry):
-  return {
+  light_object = {
     'id': light_response_entry['id'],
-    'on': light_response_entry['on'],
+    'on': light_response_entry['on']['on'],
     'color_capable': 'color' in light_response_entry.keys(),
     'name': light_response_entry['metadata']['name']
   }
+
+  if light_object['color_capable']:
+    light_object['type'] = 'hue_white_and_color_ambiance'
+    light_object['color'] = {
+      'xy': light_response_entry['color']['xy']
+    }
+  else:
+    light_object['type'] = 'hue_white_bulb'
+  return light_object
 
 def build_room_object(room_response_entry):
   lights = [service['rid'] for service in room_response_entry['services'] if service['rtype'] == 'light']

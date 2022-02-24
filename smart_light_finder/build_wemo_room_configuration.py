@@ -1,4 +1,5 @@
 import sys
+import time
 from collections import defaultdict
 from termcolor import colored
 
@@ -48,8 +49,14 @@ Are there any more rooms we should know about? Enter the new room name, or press
       continue
     outlets_by_room[room].append(outlet)
 
-  print("here is the output...", file=sys.stderr)
-  print(toml.dumps(outlets_by_room))
+  timestamp = int(time.time() * 1000)
+  filename = f"wemo_rooms_{timestamp}.toml"
+  print(f"printing the following configuration to {colored(filename, 'green')}:", file=sys.stderr)
+  toml_output = toml.dumps(outlets_by_room)
+  print(toml_output)
+
+  with open(filename, "w+") as output_file:
+    print(toml_output, file=output_file)
 
 
 if __name__ == '__main__':
