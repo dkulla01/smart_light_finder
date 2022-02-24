@@ -35,7 +35,7 @@ def main():
   ).execute()
 
   scene_name = inquirer.text(
-    message="what should we name this scene?"
+    message="What should we name this scene?"
   ).execute()
   print(colored(f"Great, lets start configuring the {scene_name} scene in the {room_to_configure}!", 'green'),  file=sys.stderr)
 
@@ -58,16 +58,19 @@ def main():
 
     if index_of_existing_scene is not None:
       confirmation = inquirer.confirm(
-        message=f"there is already a {scene_name} scene. overwrite it?"
+        message=f"There is already a {scene_name} scene. overwrite it?"
       ).execute()
       if not confirmation:
         exit(0)
 
-    hue_lights_to_configure = sorted([
-      light
-      for light_id, light in hue_devices_by_id.items()
-      if light_id in hue_rooms_by_name[room_to_configure]['lights']
-    ])
+    hue_lights_to_configure = sorted(
+      [
+        light
+        for light_id, light in hue_devices_by_id.items()
+        if light_id in hue_rooms_by_name[room_to_configure]['lights']
+      ],
+      key=lambda light: light['name']
+    )
 
     hue_device_configuration = []
     if hue_lights_to_configure:
@@ -178,7 +181,7 @@ def get_wemo_room_configuration():
 def get_wemo_devices_by_room_name(wemo_room_configuration):
   all_devices = pywemo.discover_devices()
   devices_by_room = {}
-  devices_by_name = {device.name: device for  device in all_devices}
+  devices_by_name = {device.name: device for device in all_devices}
   for room, device_names in wemo_room_configuration.items():
     devices = [devices_by_name[name] for name in device_names]
     devices_by_room[room] = devices
@@ -191,7 +194,7 @@ def get_nanoleaf_configuration(room_name):
     print(colored(f"There are no nanoleaf devices in the {room_name}.", TERMCOLOR_YELLOW),  file=sys.stderr)
     return []
   nanoleaf_devices = [get_device_status(device_name) for device_name in nanoleaf_device_names]
-  currently_on_devices = filter(lambda device: device['on'], nanoleaf_devices)
+  currently_on_devices = list(filter(lambda device: device['on'], nanoleaf_devices))
   if not currently_on_devices:
     print(colored(f"There are no currently on nanoleaf devices in the {room_name}.", TERMCOLOR_YELLOW),  file=sys.stderr)
     return []
