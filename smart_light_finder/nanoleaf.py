@@ -31,6 +31,6 @@ def get_device_status(device_name):
     'type': 'nanoleaf_light_panels'
   }
   if status['on']:
-    status['effect'] = device_info['effects']['select']
+    status['color'] = {'effect': device_info['effects']['select']}
 
   return status
