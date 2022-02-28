@@ -134,11 +134,10 @@ def build_hue_scene_configuration(hue_lights_to_configure):
     light_configuration = {
       'name': light['name'],
       'id': light['id'],
-      'type': light['type']
+      'type': light['type'],
+      'on': light['name'] in selected_hue_lights
     }
-    if light['name'] not in selected_hue_lights:
-      light_configuration['on'] = False
-    elif light.get('color'):
+    if light_configuration['on'] and light.get('color'):
       light_configuration['color'] = light['color']
     hue_device_configuration.append(light_configuration)
   return hue_device_configuration
