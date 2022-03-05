@@ -12,6 +12,7 @@ from termcolor import colored
 from smart_light_finder.hue.config import get_hue_host, get_hue_api_key
 from smart_light_finder.hue.topology import get_rooms, get_lights
 from smart_light_finder.nanoleaf import get_nanoleaf_devices, get_device_status
+from smart_light_finder.wemo_topology import load_wemo_room_configuration
 
 TERMCOLOR_YELLOW = 'yellow'
 
@@ -26,7 +27,7 @@ def main():
   }
   print(colored('found hue rooms', 'green'), file=sys.stderr)
   hue_rooms_by_name = {room['name']: room for room in hue_rooms}
-  wemo_room_configuration = get_wemo_room_configuration()
+  wemo_room_configuration = load_wemo_room_configuration()
 
   room_names = set().union(hue_rooms_by_name.keys(), wemo_room_configuration.keys())
   room_to_configure = inquirer.select(
@@ -162,30 +163,6 @@ def build_wemo_scene_configuration(wemo_devices):
     }
     for device in wemo_devices
   ]
-
-
-def get_wemo_room_configuration():
-  wemo_room_config_file = os.environ.get('WEMO_ROOM_FILE', 'wemo_rooms.toml')
-  print(colored(f"Looking for wemo rooms and devices from {wemo_room_config_file}...", 'green'), file=sys.stderr, end='')
-
-  if not os.path.exists(wemo_room_config_file):
-    print(colored("It doesn't look like there are any wemo config files", 'red'), file=sys.stderr)
-    return {}
-  wemo_room_configuration = toml.load(wemo_room_config_file)
-  wemo_devices_by_room_name = get_wemo_devices_by_room_name(wemo_room_configuration)
-  print(colored('Found wemo rooms and devices', 'green'), file=sys.stderr)
-  return wemo_devices_by_room_name
-
-
-def get_wemo_devices_by_room_name(wemo_room_configuration):
-  all_devices = pywemo.discover_devices()
-  devices_by_room = {}
-  devices_by_name = {device.name: device for device in all_devices}
-  for room, device_names in wemo_room_configuration.items():
-    devices = [devices_by_name[name] for name in device_names]
-    devices_by_room[room] = devices
-  return devices_by_room
-
 
 def get_nanoleaf_configuration(room_name):
   nanoleaf_device_names = get_nanoleaf_devices(room_name)
