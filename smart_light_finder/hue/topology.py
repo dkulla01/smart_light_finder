@@ -49,6 +49,7 @@ def build_scenes_object(scene_response_entry):
     raise AssertionError('scenes should belong to rooms')
 
   return {
+    'id': scene_response_entry['id'],
     'room_id': scene_response_entry['group']['rid'],
     'name': scene_response_entry['metadata']['name']
   }
