@@ -22,10 +22,10 @@ def main():
     choices=sorted(list(hue_rooms_by_name.keys()))
   ).execute()
   selected_room_id = hue_rooms_by_name[room_to_configure]['id']
-  scenes_in_this_room = filter(lambda scene: scene['room_id'] == selected_room_id, hue_scenes)
+  scenes_in_this_room = list(filter(lambda scene: scene['room_id'] == selected_room_id, hue_scenes))
 
   scenes_by_name = {scene['name']: scene for scene in scenes_in_this_room}
-  scene_choices = sorted([scene['name'] for scene in scenes_in_this_room])
+  scene_choices = sorted(scenes_by_name.keys())
 
   selected_scenes = inquirer.checkbox(
     message="Which scenes should we add to this room?",

@@ -1,6 +1,6 @@
 import requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
-from config import get_hue_host, get_hue_api_key
+from smart_light_finder.hue.config import get_hue_host, get_hue_api_key
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 HOST = get_hue_host()
@@ -18,6 +18,7 @@ def get_lights(host=HOST, api_key=KEY):
 def get_scenes(host=HOST, api_key=KEY):
   scenes_response = requests.get(f"https://{host}/clip/v2/resource/scene", headers={'hue-application-key': api_key}, verify=False)
   body = scenes_response.json()
+  return [build_scenes_object(entry) for entry in body['data']]
 
 def build_light_object(light_response_entry):
   light_object = {
