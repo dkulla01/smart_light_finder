@@ -11,7 +11,7 @@ from termcolor import colored
 
 from smart_light_finder.hue.config import get_hue_host, get_hue_api_key
 from smart_light_finder.hue.topology import get_rooms, get_lights
-from smart_light_finder.nanoleaf import get_nanoleaf_devices, get_device_status
+from smart_light_finder.nanoleaf import get_nanoleaf_device_names, get_device_status
 from smart_light_finder.wemo_topology import load_wemo_room_configuration
 
 TERMCOLOR_YELLOW = 'yellow'
@@ -165,7 +165,7 @@ def build_wemo_scene_configuration(wemo_devices):
   ]
 
 def get_nanoleaf_configuration(room_name):
-  nanoleaf_device_names = get_nanoleaf_devices(room_name)
+  nanoleaf_device_names = get_nanoleaf_device_names(room_name)
   if not nanoleaf_device_names:
     print(colored(f"There are no nanoleaf devices in the {room_name}.", TERMCOLOR_YELLOW),  file=sys.stderr)
     return []

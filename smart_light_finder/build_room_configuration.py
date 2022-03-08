@@ -5,9 +5,13 @@ from InquirerPy.base import Choice
 from termcolor import colored
 
 from hue.topology import get_rooms, get_scenes
-from smart_light_finder.nanoleaf import get_device_status, list_scene_names
+from smart_light_finder.nanoleaf import get_device_status, list_scene_names, get_nanoleaf_device_names
 from smart_light_finder.wemo_topology import load_wemo_room_configuration
 
+YES_OR_NO_CHOICES = [
+  Choice(True, name='Yes'),
+  Choice(False, name='No')
+]
 
 def main():
   print(colored('Looking for hue rooms, scenes, and devices...', 'green'), file=sys.stderr, end='')
@@ -27,24 +31,46 @@ def main():
   scenes_by_name = {scene['name']: scene for scene in scenes_in_this_room}
   scene_choices = sorted(scenes_by_name.keys())
 
-  selected_scenes = inquirer.checkbox(
+  selected_hue_scenes = inquirer.checkbox(
     message="Which scenes should we add to this room?",
     choices=scene_choices
   ).execute()
 
-def build_scene_configuration(hue_scene, wemo_devices, nanoleaf_devices):
-  done_configuring = False
-  while not done_configuring:
-    any_wemo_devices = inquirer.select(
-      message="Should any wemo devices be on in this scene?",
-      choices=["Yes", "No"]
+  wemo_devices_in_this_room = wemo_room_configuration.get(room_to_configure, [])
+  nanoleaf_devices_in_this_room = get_nanoleaf_device_names(room_to_configure)
+  scene_configurations = []
+  for scene in selected_hue_scenes:
+    scene_configurations.append(
+      build_scene_configuration(scene, wemo_devices_in_this_room, nanoleaf_devices_in_this_room)
+    )
+  print(scene_configurations, file=sys.stderr)
+
+def build_scene_configuration(hue_scene, wemo_devices, nanoleaf_device_names):
+  scene_configurations = []
+  hue_scene_configuration = {
+    'name': hue_scene,
+    'type': 'hue_scene'
+  }
+  more_scene_variants_remaining = True
+  scene_index = 0
+
+  while more_scene_variants_remaining:
+    scene_name = f"{hue_scene}_scene_{scene_index}"
+    print(colored(f"configuring {scene_name}", 'green'))
+    scene_configuration = {
+      'name': scene_name,
+      'devices': [hue_scene_configuration]
+                 + build_wemo_device_configuration_for_scene(wemo_devices)
+                 + build_nanoleaf_device_configuration_for_scene(nanoleaf_device_names)
+    }
+    scene_configurations.append(scene_configuration)
+    scene_index += 1
+    more_scene_variants_remaining = inquirer.select(
+      message=f"Are there any more variants of this `{hue_scene}` scene?",
+      choices=YES_OR_NO_CHOICES
     ).execute()
-    if any_wemo_devices:
-      # figure out which wemo devices should be on
-      pass
-    else:
-      # mark all of the wemo devices as off
-      pass
+  return scene_configurations
+
 
 def build_wemo_device_configuration_for_scene(wemo_devices):
   if not wemo_devices:
@@ -52,7 +78,7 @@ def build_wemo_device_configuration_for_scene(wemo_devices):
   wemo_device_names = sorted([device.name for device in wemo_devices])
   any_wemo_devices = inquirer.select(
     message="Should any WeMo devices be on in this scene?",
-    choices=["Yes", "No"]
+    choices=YES_OR_NO_CHOICES
   ).execute()
   if not any_wemo_devices:
     return [
@@ -79,25 +105,23 @@ def build_wemo_device_configuration_for_scene(wemo_devices):
   ]
 
 
-
-def build_nanoleaf_device_configuration_for_scene(nanoleaf_devices):
-  if not nanoleaf_devices:
+def build_nanoleaf_device_configuration_for_scene(nanoleaf_device_names):
+  if not nanoleaf_device_names:
     return []
   any_nanoleaf_devices = inquirer.select(
     message='Should any Nanoleaf devices be on in this scene?',
-    choices=['Yes', 'No']
+    choices=YES_OR_NO_CHOICES
   ).execute()
   if not any_nanoleaf_devices:
     return [
       {
-        'name': device.name,
+        'name': device_name,
         'on': False,
         'type': 'nanoleaf_light_panels'
       }
-      for device in nanoleaf_devices
+      for device_name in nanoleaf_device_names
     ]
   nanoleaf_configuration = []
-  nanoleaf_device_names = sorted(device['name'] for device in nanoleaf_devices)
   selected_nanoleaf_devices = set(
     inquirer.checkbox(
       message='Which Nanoleaf devices should be on?',
