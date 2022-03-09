@@ -8,24 +8,18 @@ from InquirerPy.base import Choice
 from termcolor import cprint, colored
 
 from hue.topology import get_rooms, get_scenes
+from smart_light_finder.inquirepy_util import YES_OR_NO_CHOICES
 from smart_light_finder.nanoleaf import get_device_status, list_scene_names, get_nanoleaf_device_names
+from smart_light_finder.termcolor_util import Color
 from smart_light_finder.wemo_topology import load_wemo_room_configuration
 
-YES_OR_NO_CHOICES = [
-  Choice(True, name='Yes'),
-  Choice(False, name='No')
-]
 
-TERMCOLOR_GREEN = 'green'
-TERMCOLOR_BLUE = 'blue'
-TERMCOLOR_YELLOW = 'yellow'
-TERMCOLOR_RED = 'red'
 def main():
-  cprint('Looking for hue rooms, scenes, and devices...', color=TERMCOLOR_GREEN, file=sys.stderr, end='')
+  cprint('Looking for hue rooms, scenes, and devices...', color=Color.GREEN.value, file=sys.stderr, end='')
   hue_rooms = get_rooms()
   hue_rooms_by_name = {room['name']: room for room in hue_rooms}
   hue_scenes = get_scenes()
-  cprint('found hue rooms and scenes', color=TERMCOLOR_GREEN, file=sys.stderr)
+  cprint('found hue rooms and scenes', color=Color.GREEN.value, file=sys.stderr)
   wemo_room_configuration = load_wemo_room_configuration()
 
   room_to_configure = inquirer.select(
@@ -34,15 +28,15 @@ def main():
   ).execute()
 
   # see if there's a room configuration file already?
-  room_configuration_file_name = f"{room_to_configure.lower()}_scene_configuration.yaml"
+  room_configuration_file_name = f"{room_to_configure.replace(' ', '_').lower()}_scene_configuration.yaml"
   room_configuration_file = Path(room_configuration_file_name)
   if path.exists(room_configuration_file):
-    overwrite_exiting_config = inquirer.select(
-      message=f"a configuration for {room_to_configure} already exists. Overwrite it?",
+    overwrite_existing_config = inquirer.select(
+      message=f"A configuration for {room_to_configure} already exists. Overwrite it?",
       choices=YES_OR_NO_CHOICES
     ).execute()
-    if not overwrite_exiting_config:
-      cprint(f"Not overwriting the existing config for {room_to_configure}", color=TERMCOLOR_RED, file=sys.stderr)
+    if not overwrite_existing_config:
+      cprint(f"Not overwriting the existing config for {room_to_configure}", color=Color.RED.value, file=sys.stderr)
       exit(0)
 
   selected_room_id = hue_rooms_by_name[room_to_configure]['id']
@@ -67,7 +61,7 @@ def main():
   with open(room_configuration_file, 'w') as configuration_file:
     yaml.safe_dump(scene_configurations, configuration_file)
 
-  cprint(f"finished writing configuration to {room_configuration_file}", color=TERMCOLOR_GREEN, file=sys.stderr)
+  cprint(f"finished writing configuration to {room_configuration_file}", color=Color.GREEN.value, file=sys.stderr)
 def build_scene_configuration(hue_scene, wemo_devices, nanoleaf_device_names):
   scene_configurations = []
   hue_scene_configuration = {
@@ -79,7 +73,7 @@ def build_scene_configuration(hue_scene, wemo_devices, nanoleaf_device_names):
 
   while more_scene_variants_remaining:
     scene_name = f"{hue_scene.replace(' ', '_').lower()}_scene_{scene_index}"
-    prompt = colored("Configuring ", color=TERMCOLOR_GREEN) + colored(scene_name, color=TERMCOLOR_BLUE)
+    prompt = colored("Configuring ", color=Color.GREEN.value) + colored(scene_name, color=Color.BLUE.value)
     print(prompt, file=sys.stderr)
     scene_configuration = {
       'name': scene_name,
@@ -99,7 +93,7 @@ def build_scene_configuration(hue_scene, wemo_devices, nanoleaf_device_names):
 def build_wemo_device_configuration_for_scene(wemo_devices):
   if not wemo_devices:
     return []
-  wemo_device_names = sorted([device.name for device in wemo_devices])
+  wemo_device_names = sorted([device.value for device in wemo_devices])
   any_wemo_devices = inquirer.select(
     message="Should any WeMo devices be on in this scene?",
     choices=YES_OR_NO_CHOICES
@@ -107,7 +101,7 @@ def build_wemo_device_configuration_for_scene(wemo_devices):
   if not any_wemo_devices:
     return [
       {
-        'name': device.name,
+        'name': device.value,
         'type': 'wemo_outlet',
         'on': False
       }
@@ -121,9 +115,9 @@ def build_wemo_device_configuration_for_scene(wemo_devices):
   )
   return [
     {
-      'name': device.name,
+      'name': device.value,
       'type': 'wemo_outlet',
-      'on': device.name in selected_wemo_devices
+      'on': device.value in selected_wemo_devices
     }
     for device in wemo_devices
   ]
