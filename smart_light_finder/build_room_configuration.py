@@ -1,8 +1,11 @@
 import sys
+from os import path
+from pathlib import Path
 
+import yaml
 from InquirerPy import inquirer
 from InquirerPy.base import Choice
-from termcolor import colored
+from termcolor import cprint, colored
 
 from hue.topology import get_rooms, get_scenes
 from smart_light_finder.nanoleaf import get_device_status, list_scene_names, get_nanoleaf_device_names
@@ -13,18 +16,35 @@ YES_OR_NO_CHOICES = [
   Choice(False, name='No')
 ]
 
+TERMCOLOR_GREEN = 'green'
+TERMCOLOR_BLUE = 'blue'
+TERMCOLOR_YELLOW = 'yellow'
+TERMCOLOR_RED = 'red'
 def main():
-  print(colored('Looking for hue rooms, scenes, and devices...', 'green'), file=sys.stderr, end='')
+  cprint('Looking for hue rooms, scenes, and devices...', color=TERMCOLOR_GREEN, file=sys.stderr, end='')
   hue_rooms = get_rooms()
-  hue_rooms_by_name = {room['name']: room for room in hue_rooms }
+  hue_rooms_by_name = {room['name']: room for room in hue_rooms}
   hue_scenes = get_scenes()
-  print(colored('found hue rooms and scenes', 'green'), file=sys.stderr)
+  cprint('found hue rooms and scenes', color=TERMCOLOR_GREEN, file=sys.stderr)
   wemo_room_configuration = load_wemo_room_configuration()
 
   room_to_configure = inquirer.select(
     message='Which room are we configuring?',
     choices=sorted(list(hue_rooms_by_name.keys()))
   ).execute()
+
+  # see if there's a room configuration file already?
+  room_configuration_file_name = f"{room_to_configure.lower()}_scene_configuration.yaml"
+  room_configuration_file = Path(room_configuration_file_name)
+  if path.exists(room_configuration_file):
+    overwrite_exiting_config = inquirer.select(
+      message=f"a configuration for {room_to_configure} already exists. Overwrite it?",
+      choices=YES_OR_NO_CHOICES
+    ).execute()
+    if not overwrite_exiting_config:
+      cprint(f"Not overwriting the existing config for {room_to_configure}", color=TERMCOLOR_RED, file=sys.stderr)
+      exit(0)
+
   selected_room_id = hue_rooms_by_name[room_to_configure]['id']
   scenes_in_this_room = list(filter(lambda scene: scene['room_id'] == selected_room_id, hue_scenes))
 
@@ -43,8 +63,11 @@ def main():
     scene_configurations.append(
       build_scene_configuration(scene, wemo_devices_in_this_room, nanoleaf_devices_in_this_room)
     )
-  print(scene_configurations, file=sys.stderr)
 
+  with open(room_configuration_file, 'w') as configuration_file:
+    yaml.safe_dump(scene_configurations, configuration_file)
+
+  cprint(f"finished writing configuration to {room_configuration_file}", color=TERMCOLOR_GREEN, file=sys.stderr)
 def build_scene_configuration(hue_scene, wemo_devices, nanoleaf_device_names):
   scene_configurations = []
   hue_scene_configuration = {
@@ -55,8 +78,9 @@ def build_scene_configuration(hue_scene, wemo_devices, nanoleaf_device_names):
   scene_index = 0
 
   while more_scene_variants_remaining:
-    scene_name = f"{hue_scene}_scene_{scene_index}"
-    print(colored(f"configuring {scene_name}", 'green'))
+    scene_name = f"{hue_scene.replace(' ', '_').lower()}_scene_{scene_index}"
+    prompt = colored("Configuring ", color=TERMCOLOR_GREEN) + colored(scene_name, color=TERMCOLOR_BLUE)
+    print(prompt, file=sys.stderr)
     scene_configuration = {
       'name': scene_name,
       'devices': [hue_scene_configuration]
@@ -152,9 +176,6 @@ def build_nanoleaf_device_configuration_for_scene(nanoleaf_device_names):
       'effect': effect
     })
   return nanoleaf_configuration
-
-
-
 
 
 if __name__ == '__main__':
