@@ -7,7 +7,7 @@ from InquirerPy import inquirer
 from InquirerPy.base import Choice
 from termcolor import cprint, colored
 
-from hue.topology import get_rooms, get_scenes
+from smart_light_finder.hue.topology import get_rooms, get_scenes
 from smart_light_finder.inquirepy_util import YES_OR_NO_CHOICES
 from smart_light_finder.nanoleaf import get_device_status, list_scene_names, get_nanoleaf_device_names
 from smart_light_finder.termcolor_util import Color
