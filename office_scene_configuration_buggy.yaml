@@ -1,0 +1,43 @@
+name: Office
+remotes: []
+scenes:
+- - devices:
+    - name: Bluebird
+      type: hue_scene
+    - name: Fireplace
+      'on': true
+      type: wemo_outlet
+    - name: Fairy Lights
+      'on': false
+      type: wemo_outlet
+    name: bluebird_scene_0
+- - devices:
+    - name: Bright
+      type: hue_scene
+    - name: Fireplace
+      'on': false
+      type: wemo_outlet
+    - name: Fairy Lights
+      'on': false
+      type: wemo_outlet
+    name: bright_scene_0
+- - devices:
+    - &id001
+      name: Miami vice flamingo
+      type: hue_scene
+    - name: Fireplace
+      'on': true
+      type: wemo_outlet
+    - name: Fairy Lights
+      'on': true
+      type: wemo_outlet
+    name: miami_vice_flamingo_scene_0
+  - devices:
+    - *id001
+    - name: Fireplace
+      'on': false
+      type: wemo_outlet
+    - name: Fairy Lights
+      'on': false
+      type: wemo_outlet
+    name: miami_vice_flamingo_scene_1

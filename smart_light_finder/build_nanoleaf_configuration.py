@@ -6,7 +6,7 @@ from InquirerPy import inquirer
 from termcolor import cprint
 
 from smart_light_finder.inquirepy_util import YES_OR_NO_CHOICES
-from smart_light_finder.nanoleaf import get_all_nanoleaf_device_names, list_scene_names
+from smart_light_finder.nanoleaf import get_all_nanoleaf_device_names, list_scene_names, get_device_status
 from smart_light_finder.termcolor_util import Color
 
 
@@ -26,18 +26,19 @@ def main():
     if not overwrite_existing_config:
       cprint(f"Not overwriting the existing config for {device_to_configure}", color=Color.RED.value, file=sys.stderr)
       exit(0)
-
+  device_status = get_device_status(device_to_configure)
   scenes = list_scene_names(device_to_configure)
   scenes_to_include = inquirer.checkbox(
     message=f"Which scenes for the {device_to_configure} should we include?",
     choices=scenes
   ).execute()
   scene_configurations = [
-    build_scene_configuration(device_to_configure, scene)
+    build_scene_configuration(device_status, scene)
     for scene in scenes_to_include
   ]
   device_configuration = {
-    'remotes': ['<PLACEHOLDER -- fill this in>'],
+    'name': f"{device_to_configure.lower()}_configuration",
+    'remotes': [],
     'scenes': scene_configurations
   }
 
@@ -46,15 +47,13 @@ def main():
 
   cprint(f"finished writing configuration to {device_configuration_file_name}.", Color.GREEN.value, file=sys.stderr)
 
-
-
-
-def build_scene_configuration(device_name, scene_name):
+def build_scene_configuration(device_status, scene_name):
    return {
      'name': scene_name.replace(' ', '_').lower(),
      'devices': [
        {
-         'name': device_name,
+         'name': device_status['name'],
+         'internal_name': device_status['internal_name'],
          'effect': scene_name,
          'on': True
        }

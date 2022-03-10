@@ -13,6 +13,9 @@ from smart_light_finder.nanoleaf import get_device_status, list_scene_names, get
 from smart_light_finder.termcolor_util import Color
 from smart_light_finder.wemo_topology import load_wemo_room_configuration
 
+# force pyyaml to always write out configuration objects instead of using
+# references when a configuration object appears in multiple places
+yaml.SafeDumper.ignore_aliases = lambda *args: True
 
 def main():
   cprint('Looking for hue rooms, scenes, and devices...', color=Color.GREEN.value, file=sys.stderr, end='')
@@ -52,39 +55,57 @@ def main():
 
   wemo_devices_in_this_room = wemo_room_configuration.get(room_to_configure, [])
   nanoleaf_devices_in_this_room = get_nanoleaf_device_names(room_to_configure)
+
+  nanoleaf_devices_to_configure = nanoleaf_devices_in_this_room
+  if nanoleaf_devices_in_this_room:
+    should_configure_nanoleaf_devices = inquirer.select(
+      message="This room has nanoleaf devices. Should we include them in the hue scene configuration?",
+      choices=YES_OR_NO_CHOICES
+    ).execute()
+    if not should_configure_nanoleaf_devices:
+      nanoleaf_devices_to_configure = []
+
   scene_configurations = []
-  for scene in selected_hue_scenes:
+  for scene_name in selected_hue_scenes:
+    scene = scenes_by_name[scene_name]
     scene_configurations.append(
-      build_scene_configuration(scene, wemo_devices_in_this_room, nanoleaf_devices_in_this_room)
+      build_scene_configuration(scene, wemo_devices_in_this_room, nanoleaf_devices_to_configure)
     )
 
+  room_configuration = {
+    'name': room_to_configure,
+    'remotes': [],
+    'scenes': scene_configurations
+  }
   with open(room_configuration_file, 'w') as configuration_file:
-    yaml.safe_dump(scene_configurations, configuration_file)
-
+    yaml.safe_dump(room_configuration, configuration_file)
   cprint(f"finished writing configuration to {room_configuration_file}", color=Color.GREEN.value, file=sys.stderr)
+
+
 def build_scene_configuration(hue_scene, wemo_devices, nanoleaf_device_names):
   scene_configurations = []
-  hue_scene_configuration = {
-    'name': hue_scene,
+  hue_scene_configuration = [{
+    'name': hue_scene['name'],
+    'id': hue_scene['id'],
     'type': 'hue_scene'
-  }
+  }]
   more_scene_variants_remaining = True
   scene_index = 0
 
   while more_scene_variants_remaining:
-    scene_name = f"{hue_scene.replace(' ', '_').lower()}_scene_{scene_index}"
+    scene_name = f"{hue_scene['name'].replace(' ', '_').lower()}_scene_{scene_index}"
     prompt = colored("Configuring ", color=Color.GREEN.value) + colored(scene_name, color=Color.BLUE.value)
     print(prompt, file=sys.stderr)
     scene_configuration = {
       'name': scene_name,
-      'devices': [hue_scene_configuration]
+      'devices': hue_scene_configuration
                  + build_wemo_device_configuration_for_scene(wemo_devices)
                  + build_nanoleaf_device_configuration_for_scene(nanoleaf_device_names)
     }
     scene_configurations.append(scene_configuration)
     scene_index += 1
     more_scene_variants_remaining = inquirer.select(
-      message=f"Are there any more variants of this `{hue_scene}` scene?",
+      message=f"Are there any more variants of this `{hue_scene['name']}` scene?",
       choices=YES_OR_NO_CHOICES
     ).execute()
   return scene_configurations
@@ -93,7 +114,7 @@ def build_scene_configuration(hue_scene, wemo_devices, nanoleaf_device_names):
 def build_wemo_device_configuration_for_scene(wemo_devices):
   if not wemo_devices:
     return []
-  wemo_device_names = sorted([device.value for device in wemo_devices])
+  wemo_device_names = sorted([device.name for device in wemo_devices])
   any_wemo_devices = inquirer.select(
     message="Should any WeMo devices be on in this scene?",
     choices=YES_OR_NO_CHOICES
@@ -101,7 +122,7 @@ def build_wemo_device_configuration_for_scene(wemo_devices):
   if not any_wemo_devices:
     return [
       {
-        'name': device.value,
+        'name': device.name,
         'type': 'wemo_outlet',
         'on': False
       }
@@ -115,9 +136,9 @@ def build_wemo_device_configuration_for_scene(wemo_devices):
   )
   return [
     {
-      'name': device.value,
+      'name': device.name,
       'type': 'wemo_outlet',
-      'on': device.value in selected_wemo_devices
+      'on': device.name in selected_wemo_devices
     }
     for device in wemo_devices
   ]
