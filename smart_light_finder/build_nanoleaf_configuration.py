@@ -55,7 +55,8 @@ def build_scene_configuration(device_status, scene_name):
          'name': device_status['name'],
          'internal_name': device_status['internal_name'],
          'effect': scene_name,
-         'on': True
+         'on': True,
+         'type': 'nanoleaf_light_panels'
        }
      ]
    }
