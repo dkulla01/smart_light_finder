@@ -43,18 +43,18 @@ def main():
       exit(0)
 
   selected_room_id = hue_rooms_by_name[room_to_configure]['id']
-  scenes_in_this_room = list(filter(lambda scene: scene['room_id'] == selected_room_id, hue_scenes))
-
-  scenes_by_name = {scene['name']: scene for scene in scenes_in_this_room}
-  scene_choices = sorted(scenes_by_name.keys())
-
-  selected_hue_scenes = inquirer.checkbox(
-    message="Which scenes should we add to this room?",
-    choices=scene_choices
-  ).execute()
 
   wemo_devices_in_this_room = wemo_room_configuration.get(room_to_configure, [])
   nanoleaf_devices_in_this_room = get_nanoleaf_device_names(room_to_configure)
+
+  wemo_devices_to_configure = wemo_devices_in_this_room
+  if wemo_devices_in_this_room:
+    should_configure_wemo_devices = inquirer.select(
+      message="This room has wemo devices. Should we include them in the hue scene configuration?",
+      choices=YES_OR_NO_CHOICES
+    ).execute()
+    if not should_configure_wemo_devices:
+      wemo_devices_to_configure = []
 
   nanoleaf_devices_to_configure = nanoleaf_devices_in_this_room
   if nanoleaf_devices_in_this_room:
@@ -64,12 +64,24 @@ def main():
     ).execute()
     if not should_configure_nanoleaf_devices:
       nanoleaf_devices_to_configure = []
+  scenes_in_this_room = list(filter(lambda scene: scene['room_id'] == selected_room_id, hue_scenes))
+
+  scenes_by_name = {scene['name']: scene for scene in scenes_in_this_room}
+  scene_choices = sorted(scenes_by_name.keys())
+  selected_hue_scenes = inquirer.checkbox(
+    message="Which scenes should we add to this room?",
+    choices=scene_choices
+  ).execute()
 
   scene_configurations = []
   for scene_name in selected_hue_scenes:
     scene = scenes_by_name[scene_name]
     scene_configurations.append(
-      build_scene_configuration(scene, wemo_devices_in_this_room, nanoleaf_devices_to_configure)
+      build_scene_configuration(
+        scene,
+        wemo_devices_to_configure,
+        nanoleaf_devices_to_configure
+      )
     )
 
   room_configuration = {
@@ -92,6 +104,7 @@ def build_scene_configuration(hue_scene, wemo_devices, nanoleaf_device_names):
   more_scene_variants_remaining = True
   scene_index = 0
 
+  has_wemo_or_nanoleaf_devices = wemo_devices or nanoleaf_device_names
   while more_scene_variants_remaining:
     scene_name = f"{hue_scene['name'].replace(' ', '_').lower()}_scene_{scene_index}"
     prompt = colored("Configuring ", color=Color.GREEN.value) + colored(scene_name, color=Color.BLUE.value)
@@ -104,7 +117,7 @@ def build_scene_configuration(hue_scene, wemo_devices, nanoleaf_device_names):
     }
     scene_configurations.append(scene_configuration)
     scene_index += 1
-    more_scene_variants_remaining = inquirer.select(
+    more_scene_variants_remaining = has_wemo_or_nanoleaf_devices and inquirer.select(
       message=f"Are there any more variants of this `{hue_scene['name']}` scene?",
       choices=YES_OR_NO_CHOICES
     ).execute()
