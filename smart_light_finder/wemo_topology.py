@@ -1,3 +1,4 @@
+import os
 import sys
 import time
 from collections import defaultdict
@@ -58,6 +59,26 @@ Are there any more rooms we should know about? Enter the new room name, or press
   with open(filename, "w+") as output_file:
     print(toml_output, file=output_file)
 
+def load_wemo_room_configuration():
+  wemo_room_config_file = os.environ.get('WEMO_ROOM_FILE', 'wemo_rooms.toml')
+  print(colored(f"Looking for wemo rooms and devices from {wemo_room_config_file}...", 'green'), file=sys.stderr, end='')
+
+  if not os.path.exists(wemo_room_config_file):
+    print(colored("It doesn't look like there are any wemo config files", 'red'), file=sys.stderr)
+    return {}
+  wemo_room_configuration = toml.load(wemo_room_config_file)
+  wemo_devices_by_room_name = _get_wemo_devices_by_room_name(wemo_room_configuration)
+  print(colored('Found wemo rooms and devices', 'green'), file=sys.stderr)
+  return wemo_devices_by_room_name
+
+def _get_wemo_devices_by_room_name(wemo_room_configuration):
+  all_devices = pywemo.discover_devices()
+  devices_by_room = {}
+  devices_by_name = {device.name: device for device in all_devices}
+  for room, device_names in wemo_room_configuration.items():
+    devices = [devices_by_name[name] for name in device_names]
+    devices_by_room[room] = devices
+  return devices_by_room
 
 if __name__ == '__main__':
     main()

@@ -37,24 +37,30 @@ _Whoa there, that's a lot of env vars!_ Indeed it is. I use an
 [ohmyzsh dotenv plugin](https://github.com/ohmyzsh/ohmyzsh/tree/master/plugins/dotenv) and a `.env` file to manage and
 automatically load these env vars, but do whatever works for you. 
 
-### Building scene configurations
-Now we're ready to up a lovely ambiance in one of your hue rooms with the hue app, nanoleaf app, and/or wemo app.
-Make it extra cozy; _you're worth it!_
+### Building room configurations
+Now we're ready to import your cozy hue scenes and build configuration files with them. We'll find
+all the scenes you've made in the hue app, so create any new scenes you
+want to import.
 
-Then, with those lights on and dialed in to the colors you want, run the script
-to convert your pretty colors to a configuration we'll be able to call up from `caseta_listener`:
+To build your configurations:
 ```commandline
-poetry run build_scene_configuration
+poetry run build_room_configuration
 ```
 
 and follow the prompts.
+
+Note that you can choose to have Wemo devices and nanoleaf devices included in the scenes
+that the script configures. If you include them, the hue scenes will drive those additional devices.
+But much of the time, you'll want to control the nanoleaf devices separately. There's a script
+for that too:
+
+```commandline
+poetry run build_nanoleaf_configuration
+```
 
 `caseta_listener` knows how to listen to caseta pico remotes, but it's still learning how to
 cue up different lighting scenes. baby steps...
 
 #### things I'd like to add:
-- it would be cool if the script could tell you what the colors are in plain english. the xy color space that hue uses
-  isn't the most intuitive, so knowing that `"xy": {"x": 0.2988, "y": 0.1419}` is `pink` would make the configuration
-  script a little more descriptive. See [this gist](https://gist.github.com/popcorn245/30afa0f98eea1c2fd34d) for some context
 - I want to figure out how to build an executable from this. Not a huge deal rn, but this seems simple enough.
   [This tutorial](https://www.brainsorting.com/posts/publish-a-package-on-pypi-using-poetry/) shows how to publish a package on pypi.
