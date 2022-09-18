@@ -37,6 +37,23 @@ def build_light_object(light_response_entry):
     light_object['type'] = 'hue_white_bulb'
   return light_object
 
+def build_light_object_from_action_object(action_object_entry):
+  color_capable = 'color' in action_object_entry['action']
+  light_object = {
+    'id': action_object_entry['target']['rid'],
+    'on': action_object_entry['action']['on']['on'],
+    'color_capable': color_capable
+  }
+
+  if color_capable:
+    light_object['type'] = 'hue_white_and_color_ambiance'
+    light_object['color'] = {
+      'xy': action_object_entry['action']['color']['xy']
+    }
+  else:
+    light_object['type'] = 'hue_white_bulb'
+  return light_object
+
 def build_room_object(room_response_entry):
   lights = [service['rid'] for service in room_response_entry['services'] if service['rtype'] == 'light']
   return {
@@ -52,5 +69,13 @@ def build_scenes_object(scene_response_entry):
   return {
     'id': scene_response_entry['id'],
     'room_id': scene_response_entry['group']['rid'],
-    'name': scene_response_entry['metadata']['name']
+    'name': scene_response_entry['metadata']['name'],
+    'devices': get_devices_in_scene(scene_response_entry)
   }
+
+def get_devices_in_scene(scene_response_entry):
+  return [
+    build_light_object_from_action_object(action_object)
+    for action_object
+    in scene_response_entry['actions']
+  ]
