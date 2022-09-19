@@ -76,12 +76,10 @@ def main():
   scene_configurations = []
   for scene_name in selected_hue_scenes:
     scene = scenes_by_name[scene_name]
-    scene_configurations.append(
-      build_scene_configuration(
-        scene,
-        wemo_devices_to_configure,
-        nanoleaf_devices_to_configure
-      )
+    scene_configurations += build_scene_configuration(
+      scene,
+      wemo_devices_to_configure,
+      nanoleaf_devices_to_configure
     )
 
   room_configuration = {
@@ -99,7 +97,8 @@ def build_scene_configuration(hue_scene, wemo_devices, nanoleaf_device_names):
   hue_scene_configuration = [{
     'name': hue_scene['name'],
     'id': hue_scene['id'],
-    'type': 'hue_scene'
+    'type': 'hue_scene',
+    'devices': hue_scene['devices']
   }]
   more_scene_variants_remaining = True
   scene_index = 0
