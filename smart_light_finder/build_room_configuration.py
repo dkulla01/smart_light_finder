@@ -84,6 +84,7 @@ def main():
 
   room_configuration = {
     'name': room_to_configure,
+    'room_id': selected_room_id,
     'remotes': [],
     'scenes': scene_configurations
   }
