@@ -1,7 +1,7 @@
 import toml
 
 from smart_light_finder.hue.config import get_hue_host, get_hue_api_key
-from smart_light_finder.hue.topology import get_rooms, get_lights
+from smart_light_finder.hue.topology import get_rooms
 
 
 def main():

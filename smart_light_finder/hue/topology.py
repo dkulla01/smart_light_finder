@@ -1,5 +1,3 @@
-import enum
-
 import requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 from smart_light_finder.hue.config import get_hue_host, get_hue_api_key
