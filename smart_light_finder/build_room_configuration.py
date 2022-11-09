@@ -42,7 +42,9 @@ def main():
       cprint(f"Not overwriting the existing config for {room_to_configure}", color=Color.RED.value, file=sys.stderr)
       exit(0)
 
-  selected_room_id = hue_rooms_by_name[room_to_configure]['id']
+  selected_room = hue_rooms_by_name[room_to_configure]
+  selected_room_id = selected_room['id']
+  selected_group_light_room_id = selected_room['grouped_light_room_id']
 
   wemo_devices_in_this_room = wemo_room_configuration.get(room_to_configure, [])
   nanoleaf_devices_in_this_room = get_nanoleaf_device_names(room_to_configure)
@@ -65,7 +67,6 @@ def main():
     if not should_configure_nanoleaf_devices:
       nanoleaf_devices_to_configure = []
   scenes_in_this_room = list(filter(lambda scene: scene['room_id'] == selected_room_id, hue_scenes))
-
   scenes_by_name = {scene['name']: scene for scene in scenes_in_this_room}
   scene_choices = sorted(scenes_by_name.keys())
   selected_hue_scenes = inquirer.checkbox(
@@ -83,10 +84,13 @@ def main():
     )
 
   room_configuration = {
-    'name': room_to_configure,
-    'room_id': selected_room_id,
-    'remotes': [],
-    'scenes': scene_configurations
+    'rooms': [{
+      'name': room_to_configure,
+      'room_id': selected_room_id,
+      'grouped_light_room_id': selected_group_light_room_id,
+      'remotes': [],
+      'scenes': scene_configurations
+    }]
   }
   with open(room_configuration_file, 'w') as configuration_file:
     yaml.safe_dump(room_configuration, configuration_file)
@@ -99,7 +103,6 @@ def build_scene_configuration(hue_scene, wemo_devices, nanoleaf_device_names):
     'name': hue_scene['name'],
     'id': hue_scene['id'],
     'type': 'hue_scene',
-    'devices': hue_scene['devices']
   }]
   more_scene_variants_remaining = True
   scene_index = 0
