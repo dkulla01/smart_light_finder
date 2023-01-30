@@ -84,13 +84,11 @@ def main():
     )
 
   room_configuration = {
-    'rooms': [{
-      'name': room_to_configure,
-      'room_id': selected_room_id,
-      'grouped_light_room_id': selected_group_light_room_id,
-      'remotes': [],
-      'scenes': scene_configurations
-    }]
+    'name': room_to_configure,
+    'room_id': selected_room_id,
+    'grouped_light_room_id': selected_group_light_room_id,
+    'remotes': [],
+    'scenes': scene_configurations
   }
   with open(room_configuration_file, 'w') as configuration_file:
     yaml.safe_dump(room_configuration, configuration_file)
