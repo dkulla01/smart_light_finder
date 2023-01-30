@@ -1,3 +1,4 @@
+import argparse
 import sys
 from os import path
 
@@ -11,6 +12,11 @@ from smart_light_finder.termcolor_util import Color
 
 
 def main():
+  parser = argparse.ArgumentParser()
+  parser.add_argument('-p', '--path', help="path to directory to place wemo room configuration file")
+  arguments = parser.parse_args()
+  configuration_dir = arguments.path or path.dirname(path.abspath(__file__))
+
   device_names = get_all_nanoleaf_device_names()
   device_to_configure = inquirer.select(
     message='Which nanoleaf device are we configuring?',
@@ -18,7 +24,8 @@ def main():
   ).execute()
 
   device_configuration_file_name = f"{device_to_configure.replace(' ', '_').lower()}_scene_configuration.yaml"
-  if path.exists(device_configuration_file_name):
+  device_configuration_destination_file = path.join(configuration_dir, device_configuration_file_name)
+  if path.exists(device_configuration_destination_file):
     overwrite_existing_config = inquirer.select(
       message=f"A configuration for {device_to_configure} already exists. Overwrite it?",
       choices=YES_OR_NO_CHOICES
@@ -42,10 +49,10 @@ def main():
     'scenes': scene_configurations
   }
 
-  with open(device_configuration_file_name, 'w') as configuration_file:
+  with open(device_configuration_destination_file, 'w') as configuration_file:
     yaml.safe_dump(device_configuration, configuration_file)
 
-  cprint(f"finished writing configuration to {device_configuration_file_name}.", Color.GREEN.value, file=sys.stderr)
+  cprint(f"finished writing configuration to {device_configuration_destination_file}.", Color.GREEN.value, file=sys.stderr)
 
 def build_scene_configuration(device_status, scene_name):
    return {

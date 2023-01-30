@@ -5,7 +5,7 @@ identify their colors, and spit out some configuration yaml that we can load int
 [caseta_listener](https://github.com/dkulla01/caseta_listener).
 
 ### Setup
-You'll need python 3.9 and [poetry](https://python-poetry.org/docs/#installation). Install the projects deps with
+You'll need python 3.9+ and [poetry](https://python-poetry.org/docs/#installation). Install the projects deps with
 
 ```commandline
 poetry install
@@ -42,12 +42,21 @@ Now we're ready to import your cozy hue scenes and build configuration files wit
 all the scenes you've made in the hue app, so create any new scenes you
 want to import.
 
-To build your configurations:
+If you want to include wemo outlets in your scenes, you need to build a
+wemo room configuration that maps wemo outlets to the rooms configured in your
+philips hue config. Do that with:
+
 ```commandline
-poetry run build_room_configuration
+poetry run build_wemo_room_configuration --path path/to/configuration_dir
 ```
 
-and follow the prompts.
+
+Next, to build the scene configurations for a given room, run:
+```commandline
+poetry run build_room_configuration --path path/to/configuration_dir
+```
+
+and follow the prompts. Repeat for each room you want to configure.
 
 Note that you can choose to have Wemo devices and nanoleaf devices included in the scenes
 that the script configures. If you include them, the hue scenes will drive those additional devices.
@@ -55,12 +64,15 @@ But much of the time, you'll want to control the nanoleaf devices separately. Th
 for that too:
 
 ```commandline
-poetry run build_nanoleaf_configuration
+poetry run build_nanoleaf_configuration --path path/to/configuration_dir
 ```
 
-`caseta_listener` knows how to listen to caseta pico remotes, but it's still learning how to
-cue up different lighting scenes. baby steps...
+Finally, stitch together all of your scene configuration files with:
 
-#### things I'd like to add:
-- I want to figure out how to build an executable from this. Not a huge deal rn, but this seems simple enough.
-  [This tutorial](https://www.brainsorting.com/posts/publish-a-package-on-pypi-using-poetry/) shows how to publish a package on pypi.
+```commandline
+poetry run build_home_configuration --path path/to/configuration_dir
+```
+
+The file that this script creates is almost ready for `caseta_listener`. All it needs are the
+remote IDs of the Caseta Pico remotes that you want to be responsible for each room. You'll
+have to add those to the configuration file manually.
