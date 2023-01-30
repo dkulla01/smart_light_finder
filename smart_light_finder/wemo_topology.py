@@ -1,3 +1,4 @@
+import argparse
 import os
 import sys
 import time
@@ -16,6 +17,11 @@ OUTLET_DEVICE_TYPES = {'Switch', 'OutdoorPlug'}
 OMIT_FROM_CONFIGURATION = 'Omit from configuration'
 
 def main():
+  parser = argparse.ArgumentParser()
+  parser.add_argument('-p', '--path', help="path to directory to place wemo room configuration file")
+  arguments = parser.parse_args()
+  configuration_dir = arguments.path or os.path.dirname(os.path.abspath(__file__))
+
   print(colored("looking up hue room configuration...", 'green'), file=sys.stderr)
   hue_rooms = get_rooms(get_hue_host(), get_hue_api_key())
   room_names = [room['name'] for room in hue_rooms]
@@ -52,18 +58,18 @@ Are there any more rooms we should know about? Enter the new room name, or press
 
   timestamp = int(time.time() * 1000)
   filename = f"wemo_rooms_{timestamp}.toml"
-  print(f"printing the following configuration to {colored(filename, 'green')}:", file=sys.stderr)
+  output_file = os.path.join(configuration_dir, filename)
+  print(f"printing the following configuration to {colored(output_file, 'green')}:", file=sys.stderr)
   toml_output = toml.dumps(outlets_by_room)
-  print(toml_output)
 
-  with open(filename, "w+") as output_file:
+  with open(output_file, "w+") as output_file:
     print(toml_output, file=output_file)
 
-def load_wemo_room_configuration():
+def load_wemo_room_configuration(configuration_dir: str):
   wemo_room_config_file = os.environ.get('WEMO_ROOM_FILE', 'wemo_rooms.toml')
   print(colored(f"Looking for wemo rooms and devices from {wemo_room_config_file}...", 'green'), file=sys.stderr, end='')
 
-  if not os.path.exists(wemo_room_config_file):
+  if not os.path.exists(os.path.join(configuration_dir, wemo_room_config_file)):
     print(colored("It doesn't look like there are any wemo config files", 'red'), file=sys.stderr)
     return {}
   wemo_room_configuration = toml.load(wemo_room_config_file)

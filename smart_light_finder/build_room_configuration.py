@@ -1,3 +1,4 @@
+import argparse
 import sys
 from os import path
 from pathlib import Path
@@ -18,12 +19,17 @@ from smart_light_finder.wemo_topology import load_wemo_room_configuration
 yaml.SafeDumper.ignore_aliases = lambda *args: True
 
 def main():
+  parser = argparse.ArgumentParser()
+  parser.add_argument('-p', '--path', help="path to directory for individual room configuration files")
+  arguments = parser.parse_args()
+  configuration_dir = arguments.path or path.dirname(path.abspath(__file__))
+
   cprint('Looking for hue rooms, scenes, and devices...', color=Color.GREEN.value, file=sys.stderr, end='')
   hue_rooms = get_rooms()
   hue_rooms_by_name = {room['name']: room for room in hue_rooms}
   hue_scenes = get_scenes()
   cprint('found hue rooms and scenes', color=Color.GREEN.value, file=sys.stderr)
-  wemo_room_configuration = load_wemo_room_configuration()
+  wemo_room_configuration = load_wemo_room_configuration(configuration_dir)
 
   room_to_configure = inquirer.select(
     message='Which room are we configuring?',
@@ -32,7 +38,7 @@ def main():
 
   # see if there's a room configuration file already?
   room_configuration_file_name = f"{room_to_configure.replace(' ', '_').lower()}_scene_configuration.yaml"
-  room_configuration_file = Path(room_configuration_file_name)
+  room_configuration_file = path.join(configuration_dir, room_configuration_file_name)
   if path.exists(room_configuration_file):
     overwrite_existing_config = inquirer.select(
       message=f"A configuration for {room_to_configure} already exists. Overwrite it?",

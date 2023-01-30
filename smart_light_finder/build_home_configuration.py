@@ -16,7 +16,6 @@ yaml.SafeDumper.ignore_aliases = lambda *args: True
 HOME_CONFIGURATION_FILE_NAME = "total_home_configuration.yaml"
 
 def main():
-
   parser = argparse.ArgumentParser()
   parser.add_argument('-p', '--path', help="path to individual room configuration files")
   arguments = parser.parse_args()
